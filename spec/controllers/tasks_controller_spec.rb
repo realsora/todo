@@ -5,11 +5,12 @@ RSpec.describe TasksController, type: :controller do
     it "should list the tasks in the database" do
       task1 = FactoryBot.create(:task)
       task2 = FactoryBot.create(:task)
+      task1.update_attributes(title: "something else")
       get :index
       expect(response).to have_http_status :success
       response_value = ActiveSupport::JSON.decode(@response.body)
       expect(response_value.count).to eq(2)
-      response_ids=response_value.collect do |task|
+      response_ids = response_value.collect do |task|
         task["id"]
       end
       expect(response_ids).to eq([task1.id, task2.id])
@@ -24,5 +25,16 @@ RSpec.describe TasksController, type: :controller do
       expect(task.done).to eq(true)
   end
 end
+  
+  describe "tasks#create" do
+    it "should allow new tasks to be created" do
+      @fix = "Fix Things"
+      post :create, params: {task: {title: @fix}}
+      expect(response).to have_http_status(:success)
+      response_value = ActiveSupport::JSON.decode(@response.body)
+      expect(response_value['title']).to eq(@fix)
+      expect(Task.last.title).to eq(@fix)
+    end
+  end
 
 end
